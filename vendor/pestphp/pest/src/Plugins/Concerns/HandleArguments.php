@@ -16,17 +16,7 @@ trait HandleArguments
      */
     public function hasArgument(string $argument, array $arguments): bool
     {
-        foreach ($arguments as $arg) {
-            if ($arg === $argument) {
-                return true;
-            }
-
-            if (str_starts_with($arg, "$argument=")) {
-                return true;
-            }
-        }
-
-        return false;
+        return in_array($argument, $arguments, true);
     }
 
     /**
@@ -54,6 +44,6 @@ trait HandleArguments
 
         unset($arguments[$argument]);
 
-        return array_values(array_flip($arguments));
+        return array_flip($arguments);
     }
 }

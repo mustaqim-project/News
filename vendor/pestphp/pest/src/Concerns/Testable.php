@@ -23,49 +23,39 @@ use Throwable;
 trait Testable
 {
     /**
-     * The test's description.
+     * Test method description.
      */
     private string $__description;
 
     /**
-     * The test's latest description.
+     * Test "latest" method description.
      */
     private static string $__latestDescription;
 
     /**
-     * The test's describing, if any.
-     */
-    public ?string $__describing = null;
-
-    /**
-     * The test's test closure.
+     * The Test Case "test" closure.
      */
     private Closure $__test;
 
     /**
-     * The test's before each closure.
+     * The Test Case "setUp" closure.
      */
     private ?Closure $__beforeEach = null;
 
     /**
-     * The test's after each closure.
+     * The Test Case "tearDown" closure.
      */
     private ?Closure $__afterEach = null;
 
     /**
-     * The test's before all closure.
+     * The Test Case "setUpBeforeClass" closure.
      */
     private static ?Closure $__beforeAll = null;
 
     /**
-     * The test's after all closure.
+     * The test "tearDownAfterClass" closure.
      */
     private static ?Closure $__afterAll = null;
-
-    /**
-     * The list of snapshot changes, if any.
-     */
-    private array $__snapshotChanges = [];
 
     /**
      * Resets the test case static properties.
@@ -88,7 +78,6 @@ trait Testable
         if ($test->hasMethod($name)) {
             $method = $test->getMethod($name);
             $this->__description = self::$__latestDescription = $method->description;
-            $this->__describing = $method->describing;
             $this->__test = $method->getClosure($this);
         }
     }
@@ -103,7 +92,7 @@ trait Testable
         }
 
         self::$__beforeAll = (self::$__beforeAll instanceof Closure)
-            ? ChainableClosure::boundStatically(self::$__beforeAll, $hook)
+            ? ChainableClosure::fromStatic(self::$__beforeAll, $hook)
             : $hook;
     }
 
@@ -117,7 +106,7 @@ trait Testable
         }
 
         self::$__afterAll = (self::$__afterAll instanceof Closure)
-            ? ChainableClosure::boundStatically(self::$__afterAll, $hook)
+            ? ChainableClosure::fromStatic(self::$__afterAll, $hook)
             : $hook;
     }
 
@@ -147,7 +136,7 @@ trait Testable
         }
 
         $this->{$property} = ($this->{$property} instanceof Closure)
-            ? ChainableClosure::bound($this->{$property}, $hook)
+            ? ChainableClosure::from($this->{$property}, $hook)
             : $hook;
     }
 
@@ -161,7 +150,7 @@ trait Testable
         $beforeAll = TestSuite::getInstance()->beforeAll->get(self::$__filename);
 
         if (self::$__beforeAll instanceof Closure) {
-            $beforeAll = ChainableClosure::boundStatically(self::$__beforeAll, $beforeAll);
+            $beforeAll = ChainableClosure::fromStatic(self::$__beforeAll, $beforeAll);
         }
 
         call_user_func(Closure::bind($beforeAll, null, self::class));
@@ -175,7 +164,7 @@ trait Testable
         $afterAll = TestSuite::getInstance()->afterAll->get(self::$__filename);
 
         if (self::$__afterAll instanceof Closure) {
-            $afterAll = ChainableClosure::boundStatically(self::$__afterAll, $afterAll);
+            $afterAll = ChainableClosure::fromStatic(self::$__afterAll, $afterAll);
         }
 
         call_user_func(Closure::bind($afterAll, null, self::class));
@@ -190,34 +179,12 @@ trait Testable
     {
         TestSuite::getInstance()->test = $this;
 
-        $method = TestSuite::getInstance()->tests->get(self::$__filename)->getMethod($this->name());
-
-        $description = $this->dataName() ? $method->description.' with '.$this->dataName() : $method->description;
-        $description = htmlspecialchars(html_entity_decode($description), ENT_NOQUOTES);
-
-        if ($method->repetitions > 1) {
-            $matches = [];
-            preg_match('/\((.*?)\)/', $description, $matches);
-
-            if (count($matches) > 1) {
-                if (str_contains($description, 'with '.$matches[0].' /')) {
-                    $description = str_replace('with '.$matches[0].' /', '', $description);
-                } else {
-                    $description = str_replace('with '.$matches[0], '', $description);
-                }
-            }
-
-            $description .= ' @ repetition '.($matches[1].' of '.$method->repetitions);
-        }
-
-        $this->__description = self::$__latestDescription = $description;
-
         parent::setUp();
 
         $beforeEach = TestSuite::getInstance()->beforeEach->get(self::$__filename)[1];
 
         if ($this->__beforeEach instanceof Closure) {
-            $beforeEach = ChainableClosure::bound($this->__beforeEach, $beforeEach);
+            $beforeEach = ChainableClosure::from($this->__beforeEach, $beforeEach);
         }
 
         $this->__callClosure($beforeEach, func_get_args());
@@ -231,7 +198,7 @@ trait Testable
         $afterEach = TestSuite::getInstance()->afterEach->get(self::$__filename);
 
         if ($this->__afterEach instanceof Closure) {
-            $afterEach = ChainableClosure::bound($this->__afterEach, $afterEach);
+            $afterEach = ChainableClosure::from($this->__afterEach, $afterEach);
         }
 
         $this->__callClosure($afterEach, func_get_args());
@@ -263,9 +230,7 @@ trait Testable
     {
         $method = TestSuite::getInstance()->tests->get(self::$__filename)->getMethod($this->name());
 
-        if ($method->repetitions > 1) {
-            array_shift($arguments);
-        }
+        $this->__description = self::$__latestDescription = $this->dataName() ? $method->description.' with '.$this->dataName() : $method->description;
 
         $underlyingTest = Reflection::getFunctionVariable($this->__test, 'closure');
         $testParameterTypes = array_values(Reflection::getFunctionArguments($underlyingTest));
@@ -290,7 +255,7 @@ trait Testable
             return $arguments;
         }
 
-        if (isset($testParameterTypes[0]) && in_array($testParameterTypes[0], [Closure::class, 'callable'])) {
+        if (in_array($testParameterTypes[0], [Closure::class, 'callable'])) {
             return $arguments;
         }
 
@@ -335,24 +300,6 @@ trait Testable
     private function __callClosure(Closure $closure, array $arguments): mixed
     {
         return ExceptionTrace::ensure(fn (): mixed => call_user_func_array(Closure::bind($closure, $this, $this::class), $arguments));
-    }
-
-    /** @postCondition */
-    protected function __MarkTestIncompleteIfSnapshotHaveChanged(): void
-    {
-        if (count($this->__snapshotChanges) === 0) {
-            return;
-        }
-
-        if (count($this->__snapshotChanges) === 1) {
-            $this->markTestIncomplete($this->__snapshotChanges[0]);
-
-            return;
-        }
-
-        $messages = implode(PHP_EOL, array_map(static fn (string $message): string => '- $message', $this->__snapshotChanges));
-
-        $this->markTestIncomplete($messages);
     }
 
     /**

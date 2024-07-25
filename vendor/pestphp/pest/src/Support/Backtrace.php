@@ -78,7 +78,9 @@ final class Backtrace
      */
     public static function file(): string
     {
-        $trace = self::backtrace();
+        $trace = debug_backtrace(self::BACKTRACE_OPTIONS)[1];
+
+        assert(array_key_exists(self::FILE, $trace));
 
         return $trace[self::FILE];
     }
@@ -88,7 +90,9 @@ final class Backtrace
      */
     public static function dirname(): string
     {
-        $trace = self::backtrace();
+        $trace = debug_backtrace(self::BACKTRACE_OPTIONS)[1];
+
+        assert(array_key_exists(self::FILE, $trace));
 
         return dirname($trace[self::FILE]);
     }
@@ -98,34 +102,8 @@ final class Backtrace
      */
     public static function line(): int
     {
-        $trace = self::backtrace();
+        $trace = debug_backtrace(self::BACKTRACE_OPTIONS)[1];
 
         return $trace['line'] ?? 0;
-    }
-
-    /**
-     * @return array{function: string, line?: int, file: string, class?: class-string, type?: string, args?: mixed[], object?: object}
-     */
-    private static function backtrace(): array
-    {
-        $backtrace = debug_backtrace(self::BACKTRACE_OPTIONS);
-
-        foreach ($backtrace as $trace) {
-            if (! isset($trace['file'])) {
-                continue;
-            }
-
-            if (($GLOBALS['__PEST_INTERNAL_TEST_SUITE'] ?? false) && str_contains($trace['file'], 'pest'.DIRECTORY_SEPARATOR.'src')) {
-                continue;
-            }
-
-            if (str_contains($trace['file'], DIRECTORY_SEPARATOR.'pestphp'.DIRECTORY_SEPARATOR.'pest'.DIRECTORY_SEPARATOR.'src')) {
-                continue;
-            }
-
-            return $trace;
-        }
-
-        throw ShouldNotHappen::fromMessage('Backtrace not found.');
     }
 }

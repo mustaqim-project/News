@@ -1,6 +1,8 @@
 @extends('frontend.layouts.master')
 
 @section('content')
+@php $socialLinks = \App\Models\SocialLink::where('status', 1)->get(); @endphp
+
     <!-- Breadcrumb  -->
     <section>
         <div class="container">
@@ -102,11 +104,11 @@
                         <div class="social__media">
                             <h5>{{ __('frontend.find us') }}</h5>
                             <ul class="list-inline">
-                                @foreach ($socials as $social)
+                                @foreach ($socialLinks as $link)
                                     <li class="list-inline-item-contact mx-1">
-                                        <a href="https://www.linkedin.com/"
-                                            class="btn btn-social rounded text-white facebook">
-                                            <i class="{{ $social->icon }}"></i>
+                                        <a href="{{ $link->url }}"
+                                            class="btn btn-social rounded text-white"  aria-label="Go to Mazhub Media Social" alt="Mazhub  Media Social" aria-hidden="true">
+                                            <i class="{{ $link->icon }}"></i>
                                         </a>
                                     </li>
                                 @endforeach

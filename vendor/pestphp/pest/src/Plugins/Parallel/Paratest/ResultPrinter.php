@@ -4,16 +4,6 @@ declare(strict_types=1);
 
 namespace Pest\Plugins\Parallel\Paratest;
 
-use ParaTest\Options;
-use Pest\Plugins\Parallel\Support\CompactPrinter;
-use Pest\Support\StateGenerator;
-use PHPUnit\TestRunner\TestResult\TestResult;
-use PHPUnit\TextUI\Output\Printer;
-use SebastianBergmann\Timer\Duration;
-use SplFileInfo;
-use Symfony\Component\Console\Formatter\OutputFormatter;
-use Symfony\Component\Console\Output\OutputInterface;
-
 use function assert;
 use function fclose;
 use function feof;
@@ -22,11 +12,20 @@ use function fread;
 use function fseek;
 use function ftell;
 use function fwrite;
+use NunoMaduro\Collision\Adapters\Phpunit\State;
+use ParaTest\Options;
+use Pest\Plugins\Parallel\Support\CompactPrinter;
+use Pest\Support\StateGenerator;
+use PHPUnit\TestRunner\TestResult\TestResult;
+use PHPUnit\TextUI\Output\Printer;
+use function preg_replace;
+use SebastianBergmann\Timer\Duration;
+use SplFileInfo;
 use function strlen;
+use Symfony\Component\Console\Formatter\OutputFormatter;
+use Symfony\Component\Console\Output\OutputInterface;
 
-/**
- * @internal
- */
+/** @internal */
 final class ResultPrinter
 {
     /**
@@ -52,7 +51,7 @@ final class ResultPrinter
     /** @var resource|null */
     private $teamcityLogFileHandle;
 
-    /** @var array<non-empty-string, int> */
+    /** @var array<string, int> */
     private array $tailPositions;
 
     public function __construct(
@@ -75,7 +74,6 @@ final class ResultPrinter
                 if (str_starts_with($buffer, 'done [')) {
                     return;
                 }
-
                 $this->output->write(OutputFormatter::escape($buffer));
             }
 
@@ -95,12 +93,9 @@ final class ResultPrinter
         $this->teamcityLogFileHandle = $teamcityLogFileHandle;
     }
 
-    /** @param  list<SplFileInfo>  $teamcityFiles */
-    public function printFeedback(
-        SplFileInfo $progressFile,
-        SplFileInfo $outputFile,
-        array $teamcityFiles
-    ): void {
+    /** @param  array<int, SplFileInfo>  $teamcityFiles */
+    public function printFeedback(SplFileInfo $progressFile, array $teamcityFiles): void
+    {
         if ($this->options->needsTeamcity) {
             $teamcityProgress = $this->tailMultiple($teamcityFiles);
 
@@ -120,15 +115,6 @@ final class ResultPrinter
             return;
         }
 
-        $unexpectedOutput = $this->tail($outputFile);
-        if ($unexpectedOutput !== '') {
-            if (preg_match('/^T+$/', $unexpectedOutput) > 0) {
-                return;
-            }
-
-            $this->output->write($unexpectedOutput);
-        }
-
         $feedbackItems = $this->tail($progressFile);
         if ($feedbackItems === '') {
             return;
@@ -143,8 +129,8 @@ final class ResultPrinter
     }
 
     /**
-     * @param  list<SplFileInfo>  $teamcityFiles
-     * @param  list<SplFileInfo>  $testdoxFiles
+     * @param  array<int, SplFileInfo>  $teamcityFiles
+     * @param  array<int, SplFileInfo>  $testdoxFiles
      */
     public function printResults(TestResult $testResult, array $teamcityFiles, array $testdoxFiles, Duration $duration): void
     {
@@ -197,7 +183,7 @@ final class ResultPrinter
         $this->compactPrinter->descriptionItem($item);
     }
 
-    /** @param  list<SplFileInfo>  $files */
+    /** @param  array<int, SplFileInfo>  $files */
     private function tailMultiple(array $files): string
     {
         $content = '';
@@ -215,7 +201,6 @@ final class ResultPrinter
     private function tail(SplFileInfo $file): string
     {
         $path = $file->getPathname();
-        assert($path !== '');
         $handle = fopen($path, 'r');
         assert($handle !== false);
         $fseek = fseek($handle, $this->tailPositions[$path] ?? 0);

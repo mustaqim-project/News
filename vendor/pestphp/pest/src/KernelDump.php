@@ -48,9 +48,9 @@ final class KernelDump
     }
 
     /**
-     * Terminate the output buffering.
+     * Shutdown the output buffering.
      */
-    public function terminate(): void
+    public function shutdown(): void
     {
         $this->disable();
     }

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Pest\Support;
 
 use Closure;
-use InvalidArgumentException;
 use Pest\Exceptions\ShouldNotHappen;
 use Pest\TestSuite;
 use ReflectionClass;
@@ -25,8 +24,9 @@ final class Reflection
      * Calls the given method with args on the given object.
      *
      * @param  array<int, mixed>  $args
+     * @return mixed
      */
-    public static function call(object $object, string $method, array $args = []): mixed
+    public static function call(object $object, string $method, array $args = [])
     {
         $reflectionClass = new ReflectionClass($object);
 
@@ -53,8 +53,9 @@ final class Reflection
      * Bind a callable to the TestCase and return the result.
      *
      * @param  array<int, mixed>  $args
+     * @return mixed
      */
-    public static function bindCallable(callable $callable, array $args = []): mixed
+    public static function bindCallable(callable $callable, array $args = [])
     {
         return Closure::fromCallable($callable)->bindTo(TestSuite::getInstance()->test)(...$args);
     }
@@ -62,22 +63,16 @@ final class Reflection
     /**
      * Bind a callable to the TestCase and return the result,
      * passing in the current dataset values as arguments.
+     *
+     * @return mixed
      */
-    public static function bindCallableWithData(callable $callable): mixed
+    public static function bindCallableWithData(callable $callable)
     {
         $test = TestSuite::getInstance()->test;
 
-        if (! $test instanceof \PHPUnit\Framework\TestCase) {
-            return self::bindCallable($callable);
-        }
-
-        foreach ($test->providedData() as $value) {
-            if ($value instanceof Closure) {
-                throw new InvalidArgumentException('Bound datasets are not supported while doing high order testing.');
-            }
-        }
-
-        return Closure::fromCallable($callable)->bindTo($test)(...$test->providedData());
+        return $test instanceof \PHPUnit\Framework\TestCase
+            ? Closure::fromCallable($callable)->bindTo($test)(...$test->providedData())
+            : self::bindCallable($callable);
     }
 
     /**
@@ -92,8 +87,10 @@ final class Reflection
 
     /**
      * Gets the property value from of the given object.
+     *
+     * @return mixed
      */
-    public static function getPropertyValue(object $object, string $property): mixed
+    public static function getPropertyValue(object $object, string $property)
     {
         $reflectionClass = new ReflectionClass($object);
 
@@ -199,7 +196,7 @@ final class Reflection
             }
 
             $arguments[$parameter->getName()] = implode('|', array_map(
-                static fn (ReflectionNamedType $type): string => $type->getName(), // @phpstan-ignore-line
+                static fn (ReflectionNamedType $type): string => $type->getName(),
                 ($types instanceof ReflectionNamedType)
                     ? [$types] // NOTE: normalize as list of to handle unions
                     : $types->getTypes(),
@@ -209,7 +206,10 @@ final class Reflection
         return $arguments;
     }
 
-    public static function getFunctionVariable(Closure $function, string $key): mixed
+    /**
+     * @return mixed
+     */
+    public static function getFunctionVariable(Closure $function, string $key)
     {
         return (new ReflectionFunction($function))->getStaticVariables()[$key] ?? null;
     }

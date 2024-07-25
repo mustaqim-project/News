@@ -10,7 +10,6 @@ use SebastianBergmann\CodeCoverage\Node\Directory;
 use SebastianBergmann\CodeCoverage\Node\File;
 use SebastianBergmann\Environment\Runtime;
 use Symfony\Component\Console\Output\OutputInterface;
-
 use function Termwind\render;
 use function Termwind\renderUsing;
 use function Termwind\terminal;
@@ -160,11 +159,10 @@ final class Coverage
      * ['11', '20..25', '50', '60..80'];
      * ```
      *
-     *
      * @param  File  $file
      * @return array<int, string>
      */
-    public static function getMissingCoverage(mixed $file): array
+    public static function getMissingCoverage($file): array
     {
         $shouldBeNewLine = true;
 

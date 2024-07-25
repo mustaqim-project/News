@@ -94,6 +94,7 @@ class NewsController extends Controller
         $news->show_at_popular = $request->show_at_popular == 1 ? 1 : 0;
         $news->status = $request->status == 1 ? 1 : 0;
         $news->is_approved = getRole() == 'Super Admin' || checkPermission('news all-access') ? 1 : 0;
+        $news->meta_keyword = $request->meta_keyword;
         $news->save();
 
         $tags = explode(',', $request->tags);
@@ -178,6 +179,7 @@ class NewsController extends Controller
         $news->show_at_slider = $request->show_at_slider == 1 ? 1 : 0;
         $news->show_at_popular = $request->show_at_popular == 1 ? 1 : 0;
         $news->status = $request->status == 1 ? 1 : 0;
+        $news->meta_keyword = $request->meta_keyword;
         $news->save();
 
         $tags = explode(',', $request->tags);

@@ -33,22 +33,16 @@ final class ServiceContainer
 
     public static bool $showException = false;
 
-    /**
-     * @param string[] $excludedPaths
-     */
-    public static function init(array $excludedPaths = []): void
+    public static function init(): void
     {
         self::$finder = Finder::create()
             ->files()
             ->followLinks()
+            ->exclude('vendor')
             ->name('/\.php$/')
             ->in(Filesystem::getBaseDir());
 
-        foreach ($excludedPaths as $path) {
-            self::$finder->exclude($path);
-        }
-
-        self::$parser = (new ParserFactory())->createForNewestSupportedVersion();
+        self::$parser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
 
         self::$nodeTraverser = new NodeTraverser();
         self::$nodeTraverser->addVisitor(new NameResolver());

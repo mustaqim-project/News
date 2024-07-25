@@ -14,7 +14,7 @@ trait Architectable
     /**
      * The options to use when generating the architecture.
      */
-    private ?TestCaseOptions $options = null;
+    private TestCaseOptions|null $options = null;
 
     /**
      * Returns the architecture options.

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AboutController;
+use App\Http\Controllers\Admin\kebijakanController;
 use App\Http\Controllers\Admin\AdController;
 use App\Http\Controllers\Admin\AdminAuthenticationController;
 use App\Http\Controllers\Admin\AdminUserController;
@@ -100,6 +101,10 @@ Route::group(['prefix' => 'mantap-mantap', 'as' => 'admin.', 'middleware' => ['a
     Route::get('about', [AboutController::class, 'index'])->name('about.index');
     Route::put('about', [AboutController::class, 'update'])->name('about.update');
 
+    /** kebijakan page Route */
+    Route::get('kebijakan', [kebijakanController::class, 'index'])->name('kebijakan.index');
+    Route::put('kebijakan', [kebijakanController::class, 'update'])->name('kebijakan.update');
+    
     /** Contact page Route */
     Route::get('contact', [ContactController::class, 'index'])->name('contact.index');
     Route::put('contact', [ContactController::class, 'update'])->name('contact.update');

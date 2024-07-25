@@ -99,7 +99,6 @@ final class Options
         public readonly string $runner,
         public readonly string $tmpDir,
         public readonly bool $verbose,
-        public readonly bool $functional,
     ) {
         $this->needsTeamcity = $configuration->outputIsTeamCity() || $configuration->hasLogfileTeamcity();
     }
@@ -137,10 +136,6 @@ final class Options
         assert(is_bool($options['verbose']));
         $verbose = $options['verbose'];
         unset($options['verbose']);
-
-        assert(is_bool($options['functional']));
-        $functional = $options['functional'];
-        unset($options['functional']);
 
         assert(array_key_exists('colors', $options));
         if ($options['colors'] === Configuration::COLOR_DEFAULT) {
@@ -197,7 +192,6 @@ final class Options
             $runner,
             $tmpDir,
             $verbose,
-            $functional,
         );
     }
 
@@ -212,12 +206,6 @@ final class Options
             ),
 
             // ParaTest options
-            new InputOption(
-                'functional',
-                null,
-                InputOption::VALUE_NONE,
-                'Whether to enable functional testing, for unit and dataset parallelization',
-            ),
             new InputOption(
                 'max-batch-size',
                 'm',

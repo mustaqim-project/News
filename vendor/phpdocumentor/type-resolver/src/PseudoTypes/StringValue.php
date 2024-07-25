@@ -15,15 +15,14 @@ namespace phpDocumentor\Reflection\PseudoTypes;
 
 use phpDocumentor\Reflection\PseudoType;
 use phpDocumentor\Reflection\Type;
-use phpDocumentor\Reflection\Types\String_;
+use phpDocumentor\Reflection\Types\Float_;
 
 use function sprintf;
 
 /** @psalm-immutable */
 class StringValue implements PseudoType
 {
-    /** @var string */
-    private $value;
+    private string $value;
 
     public function __construct(string $value)
     {
@@ -37,7 +36,7 @@ class StringValue implements PseudoType
 
     public function underlyingType(): Type
     {
-        return new String_();
+        return new Float_();
     }
 
     public function __toString(): string

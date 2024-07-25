@@ -10,7 +10,6 @@
 namespace PHPUnit\Event\TestSuite;
 
 use function explode;
-use PHPUnit\Event\Code\Test;
 use PHPUnit\Event\Code\TestCollection;
 use PHPUnit\Event\RuntimeException;
 use PHPUnit\Framework\DataProviderTestSuite;
@@ -31,18 +30,34 @@ final class TestSuiteBuilder
      */
     public static function from(FrameworkTestSuite $testSuite): TestSuite
     {
+        $groups = [];
+
+        foreach ($testSuite->getGroupDetails() as $groupName => $tests) {
+            if (!isset($groups[$groupName])) {
+                $groups[$groupName] = [];
+            }
+
+            foreach ($tests as $test) {
+                $groups[$groupName][] = $test::class;
+            }
+        }
+
         $tests = [];
 
-        self::process($testSuite, $tests);
+        foreach ($testSuite->tests() as $test) {
+            if ($test instanceof TestCase || $test instanceof PhptTestCase) {
+                $tests[] = $test->valueObjectForEvents();
+            }
+        }
 
         if ($testSuite instanceof DataProviderTestSuite) {
-            [$className, $methodName] = explode('::', $testSuite->name());
+            [$className, $methodName] = explode('::', $testSuite->getName());
 
             try {
                 $reflector = new ReflectionMethod($className, $methodName);
 
                 return new TestSuiteForTestMethodWithDataProvider(
-                    $testSuite->name(),
+                    $testSuite->getName(),
                     $testSuite->count(),
                     TestCollection::fromArray($tests),
                     $className,
@@ -50,61 +65,39 @@ final class TestSuiteBuilder
                     $reflector->getFileName(),
                     $reflector->getStartLine(),
                 );
-                // @codeCoverageIgnoreStart
             } catch (ReflectionException $e) {
                 throw new RuntimeException(
                     $e->getMessage(),
                     $e->getCode(),
-                    $e,
+                    $e
                 );
             }
-            // @codeCoverageIgnoreEnd
         }
 
         if ($testSuite->isForTestClass()) {
             try {
-                $reflector = new ReflectionClass($testSuite->name());
+                $reflector = new ReflectionClass($testSuite->getName());
 
                 return new TestSuiteForTestClass(
-                    $testSuite->name(),
+                    $testSuite->getName(),
                     $testSuite->count(),
                     TestCollection::fromArray($tests),
                     $reflector->getFileName(),
                     $reflector->getStartLine(),
                 );
-                // @codeCoverageIgnoreStart
             } catch (ReflectionException $e) {
                 throw new RuntimeException(
                     $e->getMessage(),
                     $e->getCode(),
-                    $e,
+                    $e
                 );
             }
-            // @codeCoverageIgnoreEnd
         }
 
         return new TestSuiteWithName(
-            $testSuite->name(),
+            $testSuite->getName(),
             $testSuite->count(),
             TestCollection::fromArray($tests),
         );
-    }
-
-    /**
-     * @psalm-param list<Test> $tests
-     */
-    private static function process(FrameworkTestSuite $testSuite, array &$tests): void
-    {
-        foreach ($testSuite->getIterator() as $test) {
-            if ($test instanceof FrameworkTestSuite) {
-                self::process($test, $tests);
-
-                continue;
-            }
-
-            if ($test instanceof TestCase || $test instanceof PhptTestCase) {
-                $tests[] = $test->valueObjectForEvents();
-            }
-        }
     }
 }

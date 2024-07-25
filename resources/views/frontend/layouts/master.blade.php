@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="">
+
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
@@ -7,14 +8,11 @@
 
     <title>@hasSection('title') @yield('title') @else {{ $settings['site_seo_title'] }} @endif </title>
     <meta name="description" content="@hasSection('meta_description') @yield('meta_description') @else {{ $settings['site_seo_description'] }} @endif " />
-    <meta name="keywords" content="{{ $settings['site_seo_keywords'] }}" />
+    <meta name="keywords" content="@hasSection('meta_keyword') @yield('meta_keyword') @else {{ $settings['site_seo_keywords'] }} @endif " />
 
     <meta name="og:title" content="@yield('meta_og_title')" />
     <meta name="og:description" content="@yield('meta_og_description')" />
     <meta name="og:image" content="@hasSection('meta_og_image') @yield('meta_og_image') @else {{ asset($settings['site_logo']) }} @endif" />
-    <meta name="twitter:title" content="@yield('meta_tw_title')" />
-    <meta name="twitter:description" content="@yield('meta_tw_description')" />
-    <meta name="twitter:image" content="@yield('meta_tw_image')" />
 
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="{{ asset($settings['site_favicon']) }}" type="image/png">
@@ -24,10 +22,38 @@
         :root {
             --colorPrimary: {{ $settings['site_color'] }};
         }
+           .lazy {
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .lazy.loaded {
+            opacity: 1;
+        }
     </style>
+
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5016031411419450"
+     crossorigin="anonymous"></script>
+     <meta name="google-adsense-account" content="ca-pub-5016031411419450">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-FZQWWJHNHP"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+        gtag('js', new Date());
+
+        gtag('config', 'G-FZQWWJHNHP');
+
+    </script>
+
 </head>
 
 <body>
+
 
     <!-- Global Variables -->
     @php
@@ -52,13 +78,16 @@
     <!-- End Footer Section -->
 
 
-    <a href="javascript:" id="return-to-top"><i class="fa fa-chevron-up"></i></a>
+    <a href="javascript:" id="return-to-top"  aria-label="Return to top of the page"><i class="fa fa-chevron-up"></i></a>
 
     <script type="text/javascript" src="{{ asset('frontend/assets/js/index.bundle.js') }}"></script>
     @include('sweetalert::alert')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
+
+
+
         const Toast = Swal.mixin({
             toast: true,
             position: 'top-end',
@@ -80,25 +109,48 @@
         });
 
         $(document).ready(function() {
-            /** change language **/
-            $('#site-language').on('change', function() {
-                let languageCode = $(this).val();
-                $.ajax({
-                    method: 'GET',
-                    url: "{{ route('language') }}",
-                    data: {
-                        language_code: languageCode
-                    },
-                    success: function(data) {
-                        if (data.status === 'success') {
-                            window.location.href = "{{ url('/') }}";
-                        }
-                    },
-                    error: function(data) {
-                        console.error(data);
-                    }
-                })
-            })
+
+    $('#site-language').on('change', function() {
+        let languageCode = $(this).val();
+        $('html').attr('lang', languageCode);
+        $.ajax({
+            method: 'GET',
+            url: "{{ route('language') }}",
+            data: {
+                language_code: languageCode
+            },
+            success: function(data) {
+                if (data.status === 'success') {
+                    window.location.href = "{{ url('/') }}";
+                }
+            },
+            error: function(data) {
+                console.error(data);
+            }
+        });
+    });
+
+
+
+    $('#nav-side-site-language').on('change', function() {
+        let languageCode = $(this).val();
+        $('html').attr('lang', languageCode);
+        $.ajax({
+            method: 'GET',
+            url: "{{ route('language') }}",
+            data: {
+                language_code: languageCode
+            },
+            success: function(data) {
+                if (data.status === 'success') {
+                    window.location.href = "{{ url('/') }}";
+                }
+            },
+            error: function(data) {
+                console.error(data);
+            }
+        });
+    });
 
             /** Subscribe Newsletter**/
             $('.newsletter-form').on('submit', function(e) {
@@ -140,6 +192,8 @@
                 })
             })
         })
+        
+      
     </script>
 
 

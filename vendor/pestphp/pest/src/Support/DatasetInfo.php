@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Pest\Support;
 
-use function Pest\testDirectory;
-
 /**
  * @internal
  */
@@ -27,10 +25,6 @@ final class DatasetInfo
 
     public static function scope(string $file): string
     {
-        if (Str::endsWith($file, testDirectory('Pest.php'))) {
-            return dirname($file);
-        }
-
         if (self::isInsideADatasetsDirectory($file)) {
             return dirname($file, 2);
         }

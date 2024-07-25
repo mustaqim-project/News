@@ -80,7 +80,7 @@ final class ParaTestCommand extends Command
             $input,
             $this->cwd,
         );
-        if (! $options->configuration->hasConfigurationFile() && ! $options->configuration->hasCliArguments()) {
+        if (! $options->configuration->hasConfigurationFile() && ! $options->configuration->hasCliArgument()) {
             return $this->displayHelp($output);
         }
 

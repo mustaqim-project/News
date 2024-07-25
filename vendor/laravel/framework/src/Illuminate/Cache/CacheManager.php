@@ -214,8 +214,7 @@ class CacheManager implements FactoryContract
             $config['table'],
             $this->getPrefix($config),
             $config['lock_table'] ?? 'cache_locks',
-            $config['lock_lottery'] ?? [2, 100],
-            $config['lock_timeout'] ?? 86400,
+            $config['lock_lottery'] ?? [2, 100]
         );
 
         return $this->repository($store->setLockConnection(
@@ -258,14 +257,10 @@ class CacheManager implements FactoryContract
             'endpoint' => $config['endpoint'] ?? null,
         ];
 
-        if (! empty($config['key']) && ! empty($config['secret'])) {
+        if (isset($config['key'], $config['secret'])) {
             $dynamoConfig['credentials'] = Arr::only(
-                $config, ['key', 'secret']
+                $config, ['key', 'secret', 'token']
             );
-        }
-
-        if (! empty($config['token'])) {
-            $dynamoConfig['credentials']['token'] = $config['token'];
         }
 
         return new DynamoDbClient($dynamoConfig);

@@ -117,9 +117,7 @@ class IgnitionServiceProvider extends ServiceProvider
                 ->setStage(app()->environment())
                 ->setContextProviderDetector(new LaravelContextProviderDetector())
                 ->registerMiddleware($this->getFlareMiddleware())
-                ->registerMiddleware(new AddSolutions(new SolutionProviderRepository($this->getSolutionProviders())))
-                ->argumentReducers(config('ignition.argument_reducers', []))
-                ->withStackFrameArguments(config('ignition.with_stack_frame_arguments', true));
+                ->registerMiddleware(new AddSolutions(new SolutionProviderRepository($this->getSolutionProviders())));
         });
 
         $this->app->singleton(SentReports::class);
@@ -145,7 +143,8 @@ class IgnitionServiceProvider extends ServiceProvider
 
         $this->app->singleton(
             Ignition::class,
-            fn () => (new Ignition($this->app->make(Flare::class)))->applicationPath(base_path())
+            fn () => (new Ignition())
+                ->applicationPath(base_path())
         );
     }
 
@@ -181,7 +180,7 @@ class IgnitionServiceProvider extends ServiceProvider
 
     public function configureTinker(): void
     {
-        if ($this->app->runningInConsole()) {
+        if (! $this->app->runningInConsole()) {
             if (isset($_SERVER['argv']) && ['artisan', 'tinker'] === $_SERVER['argv']) {
                 app(Flare::class)->sendReportsImmediately();
             }

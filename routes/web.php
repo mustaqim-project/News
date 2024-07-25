@@ -50,8 +50,22 @@ Route::post('subscribe-newsletter', [HomeController::class, 'SubscribeNewsLetter
 /** About Page Route */
 Route::get('about', [HomeController::class, 'about'])->name('about');
 
+/** kebijakan Page Route */
+Route::get('kebijakan', [HomeController::class, 'kebijakan'])->name('kebijakan');
 /** Contact Page Route */
 Route::get('contact', [HomeController::class, 'contact'])->name('contact');
 /** Contact Page Route */
 Route::post('contact', [HomeController::class, 'handleContactFrom'])->name('contact.submit');
 
+// Auth::routes(['reset' => true]);
+
+
+use App\Models\News;
+use App\Models\Category;
+
+Route::get('/sitemap.xml', function () {
+    $news = News::all();
+    $categories = Category::all();
+
+    return response()->view('sitemap', compact('news','categories'))->header('Content-Type', 'text/xml');
+});

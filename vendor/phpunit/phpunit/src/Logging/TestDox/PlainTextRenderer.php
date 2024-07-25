@@ -30,7 +30,7 @@ final class PlainTextRenderer
                 $buffer .= sprintf(
                     ' [%s] %s' . "\n",
                     $outcome,
-                    $prettifiedMethodName,
+                    $prettifiedMethodName
                 );
             }
 
@@ -50,22 +50,13 @@ final class PlainTextRenderer
         foreach ($tests as $test) {
             $prettifiedMethodName = $test->test()->testDox()->prettifiedMethodName();
 
-            $success = true;
-
-            if ($test->status()->isError() ||
-                $test->status()->isFailure() ||
-                $test->status()->isIncomplete() ||
-                $test->status()->isSkipped()) {
-                $success = false;
-            }
-
             if (!isset($result[$prettifiedMethodName])) {
-                $result[$prettifiedMethodName] = $success ? 'x' : ' ';
+                $result[$prettifiedMethodName] = $test->status()->isSuccess() ? 'x' : ' ';
 
                 continue;
             }
 
-            if ($success) {
+            if ($test->status()->isSuccess()) {
                 continue;
             }
 

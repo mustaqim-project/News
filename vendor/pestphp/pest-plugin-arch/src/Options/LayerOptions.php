@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Pest\Arch\Options;
 
 use Pest\Arch\SingleArchExpectation;
-use PHPUnit\Architecture\Elements\ObjectDescription;
 
 /**
  * @internal
@@ -14,12 +13,9 @@ final class LayerOptions
 {
     /**
      * @param  array<int, string>  $exclude
-     * @param  array<int, callable(ObjectDescription): bool>  $excludeCallbacks
      */
-    private function __construct(
-        public readonly array $exclude,
-        public readonly array $excludeCallbacks,
-    ) {
+    private function __construct(public readonly array $exclude)
+    {
         // ...
     }
 
@@ -33,6 +29,6 @@ final class LayerOptions
             $expectation->ignoring,
         );
 
-        return new self($exclude, $expectation->excludeCallbacks());
+        return new self($exclude);
     }
 }

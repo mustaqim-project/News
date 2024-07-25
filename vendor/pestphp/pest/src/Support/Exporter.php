@@ -41,7 +41,7 @@ final class Exporter
      *
      * @param  array<int|string, mixed>  $data
      */
-    public function shortenedRecursiveExport(array &$data, ?Context $context = null): string
+    public function shortenedRecursiveExport(array &$data, Context $context = null): string
     {
         $result = [];
         $array = $data;
@@ -64,8 +64,6 @@ final class Exporter
                 continue;
             }
 
-            assert(is_array($data));
-
             $result[] = $context->contains($data[$key]) !== false
                 ? '*RECURSION*'
                 : sprintf('[%s]', $this->shortenedRecursiveExport($data[$key], $context));
@@ -79,12 +77,6 @@ final class Exporter
      */
     public function shortenedExport(mixed $value): string
     {
-        $map = [
-            '#\.{3}#' => '…',
-            '#\\\n\s*#' => '',
-            '# Object \(…\)#' => '',
-        ];
-
-        return (string) preg_replace(array_keys($map), array_values($map), $this->exporter->shortenedExport($value));
+        return (string) preg_replace(['#\.{3}#', '#\\\n\s*#'], ['…'], $this->exporter->shortenedExport($value));
     }
 }

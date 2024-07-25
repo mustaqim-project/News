@@ -25,17 +25,17 @@ final class TestRepository
     private array $testCases = [];
 
     /**
-     * @var array<string, array{0: array<int, string>, 1: array<int, string>, 2: array<int, array<int, string|Closure>>}>
+     * @var array<string, array{0: array<int, string>, 1: array<int, string>, 2: array<int, string|Closure>}>
      */
     private array $uses = [];
 
     /**
-     * @var array<int, TestCaseFilter>
+     * @var  array<int, TestCaseFilter>
      */
     private array $testCaseFilters = [];
 
     /**
-     * @var array<int, TestCaseMethodFilter>
+     * @var  array<int, TestCaseMethodFilter>
      */
     private array $testCaseMethodFilters = [];
 
@@ -77,17 +77,12 @@ final class TestRepository
             throw new TestCaseClassOrTraitNotFound($classOrTrait);
         }
 
-        $hooks = array_map(fn (Closure $hook): array => [$hook], $hooks);
-
         foreach ($paths as $path) {
             if (array_key_exists($path, $this->uses)) {
                 $this->uses[$path] = [
                     [...$this->uses[$path][0], ...$classOrTraits],
                     [...$this->uses[$path][1], ...$groups],
-                    array_map(
-                        fn (int $index): array => [...$this->uses[$path][2][$index] ?? [], ...($hooks[$index] ?? [])],
-                        range(0, 3),
-                    ),
+                    $this->uses[$path][2] + $hooks,
                 ];
             } else {
                 $this->uses[$path] = [$classOrTraits, $groups, $hooks];
@@ -194,11 +189,10 @@ final class TestRepository
                     $method->groups = [...$groups, ...$method->groups];
                 }
 
-                foreach (['__addBeforeAll', '__addBeforeEach', '__addAfterEach', '__addAfterAll'] as $index => $name) {
-                    foreach ($hooks[$index] ?? [null] as $hook) {
-                        $testCase->factoryProxies->add($testCase->filename, 0, $name, [$hook]);
-                    }
-                }
+                $testCase->factoryProxies->add($testCase->filename, 0, '__addBeforeAll', [$hooks[0] ?? null]);
+                $testCase->factoryProxies->add($testCase->filename, 0, '__addBeforeEach', [$hooks[1] ?? null]);
+                $testCase->factoryProxies->add($testCase->filename, 0, '__addAfterEach', [$hooks[2] ?? null]);
+                $testCase->factoryProxies->add($testCase->filename, 0, '__addAfterAll', [$hooks[3] ?? null]);
             }
         }
 

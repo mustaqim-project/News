@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace Pest\Repositories;
 
 use Closure;
-use Pest\PendingCalls\BeforeEachCall;
-use Pest\Support\ChainableClosure;
+use Pest\Exceptions\BeforeEachAlreadyExist;
 use Pest\Support\NullClosure;
 
 /**
@@ -22,14 +21,10 @@ final class BeforeEachRepository
     /**
      * Sets a before each closure.
      */
-    public function set(string $filename, BeforeEachCall $beforeEachCall, Closure $beforeEachTestCall, Closure $beforeEachTestCase): void
+    public function set(string $filename, Closure $beforeEachTestCall, Closure $beforeEachTestCase): void
     {
         if (array_key_exists($filename, $this->state)) {
-            [$fromBeforeEachTestCall, $fromBeforeEachTestCase] = $this->state[$filename];
-
-            $beforeEachTestCall = ChainableClosure::unbound($fromBeforeEachTestCall, $beforeEachTestCall);
-            $beforeEachTestCase = ChainableClosure::bound($fromBeforeEachTestCase, $beforeEachTestCase)->bindTo($beforeEachCall, $beforeEachCall::class);
-            assert($beforeEachTestCase instanceof Closure);
+            throw new BeforeEachAlreadyExist($filename);
         }
 
         $this->state[$filename] = [$beforeEachTestCall, $beforeEachTestCase];

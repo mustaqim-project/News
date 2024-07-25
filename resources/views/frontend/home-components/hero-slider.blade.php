@@ -12,15 +12,15 @@
                                 <div class="card__post">
                                     <div class="card__post__body">
                                         <a href="{{ route('news-details', $slider->slug) }}">
-                                            <img src="{{ asset($slider->image) }}" class="img-fluid" alt="">
+                                            <img src="{{ asset($slider->image) }}" class="img-fluid" loading="lazy" alt="{{ $slider->title }}">
                                         </a>
                                         <div class="card__post__content bg__post-cover">
-                                            <div class="card__post__category">
+                                            <div class="card__post__category" aria-label="Category  {{ $slider->category->name }}">
                                                 {{ $slider->category->name }}
                                             </div>
                                             <div class="card__post__title">
                                                 <h2>
-                                                    <a href="{{ route('news-details', $slider->slug) }}">
+                                                    <a href="{{ route('news-details', $slider->slug) }}"  aria-label="Read more about {{ $slider->title }}">
                                                         {!! truncate($slider->title, 100) !!}
                                                     </a>
                                                 </h2>
@@ -28,7 +28,7 @@
                                             <div class="card__post__author-info">
                                                 <ul class="list-inline">
                                                     <li class="list-inline-item">
-                                                        <a href="javascript:;">
+                                                        <a href="javascript:;" aria-label="Read more about {{ $slider->title }}">
                                                             {{ __('frontend.by') }} {{ $slider->auther->name }}
                                                         </a>
                                                     </li>
@@ -58,15 +58,15 @@
                         <div class="card__post ">
                             <div class="card__post__body card__post__transition">
                                 <a href="{{ route('news-details', $slider->slug) }}">
-                                    <img src="{{ asset($slider->image) }}" class="img-fluid" alt="">
+                                    <img src="{{ asset($slider->image) }}" class="img-fluid" loading="lazy" alt="image {{ $slider->title }}">
                                 </a>
                                 <div class="card__post__content bg__post-cover">
-                                    <div class="card__post__category">
+                                    <div class="card__post__category" aria-label="Category  {{ $slider->category->name }}">
                                         {{ $slider->category->name }}
                                     </div>
                                     <div class="card__post__title">
                                         <h5>
-                                            <a href="{{ route('news-details', $slider->slug) }}">
+                                            <a href="{{ route('news-details', $slider->slug) }}" aria-label="Read more about {{ $slider->title }}">
                                                 {!! truncate($slider->title, 100) !!}
                                             </a>
                                         </h5>
@@ -74,7 +74,7 @@
                                     <div class="card__post__author-info">
                                         <ul class="list-inline">
                                             <li class="list-inline-item">
-                                                <a href="javascript:;">
+                                                <a href="javascript:;" aria-label="Read more about {{ $slider->title }}">
                                                     by {{ $slider->auther->name }}
                                                 </a>
                                             </li>
@@ -109,7 +109,7 @@
                             <div class="article__entry">
                                 <div class="article__image">
                                     <a href="#">
-                                        <img src="images/newsimage5.png" alt="" class="img-fluid">
+                                        <img src="images/newsimage5.png" alt="" class="img-fluid" loading="lazy">
                                     </a>
                                 </div>
                                 <div class="article__content">
@@ -139,7 +139,7 @@
                             <div class="article__entry">
                                 <div class="article__image">
                                     <a href="#">
-                                        <img src="images/newsimage6.png" alt="" class="img-fluid">
+                                        <img src="images/newsimage6.png" alt="" class="img-fluid" loading="lazy">
                                     </a>
                                 </div>
                                 <div class="article__content">
@@ -169,7 +169,7 @@
                             <div class="article__entry">
                                 <div class="article__image">
                                     <a href="#">
-                                        <img src="images/newsimage7.png" alt="" class="img-fluid">
+                                        <img src="images/newsimage7.png" alt="" class="img-fluid" loading="lazy">
                                     </a>
                                 </div>
                                 <div class="article__content">
@@ -199,7 +199,7 @@
                             <div class="article__entry">
                                 <div class="article__image">
                                     <a href="#">
-                                        <img src="images/newsimage8.png" alt="" class="img-fluid">
+                                        <img src="images/newsimage8.png" alt="" class="img-fluid" loading="lazy">
                                     </a>
                                 </div>
                                 <div class="article__content">
@@ -229,7 +229,7 @@
                             <div class="article__entry">
                                 <div class="article__image">
                                     <a href="#">
-                                        <img src="images/newsimage8.png" alt="" class="img-fluid">
+                                        <img src="images/newsimage8.png" alt="" class="img-fluid" loading="lazy">
                                     </a>
                                 </div>
                                 <div class="article__content">

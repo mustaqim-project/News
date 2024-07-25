@@ -58,10 +58,7 @@ final class Loader
     private static function getPluginInstances(): array
     {
         if (! self::$loaded) {
-            $cachedPlugins = sprintf(
-                '%s/../pest-plugins.json',
-                $GLOBALS['_composer_bin_dir'] ?? getcwd().'/vendor/bin',
-            );
+            $cachedPlugins = sprintf('%s/vendor/pest-plugins.json', getcwd());
             $container = Container::getInstance();
 
             if (! file_exists($cachedPlugins)) {

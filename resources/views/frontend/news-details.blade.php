@@ -3,6 +3,7 @@
 <!-- Setting metas -->
 @section('title', $news->title)
 @section('meta_description', $news->meta_description)
+@section('meta_keyword', $news->meta_keyword)
 @section('meta_og_title', $news->meta_title)
 @section('meta_og_description', $news->meta_description)
 @section('meta_og_image', asset($news->image))
@@ -11,6 +12,11 @@
 @section('meta_tw_image', asset($news->image))
 <!-- End Setting metas -->
 @section('content')
+
+@php
+    $title = htmlspecialchars(trim($news->title), ENT_QUOTES, 'UTF-8');
+@endphp
+
 <section class="pb-80">
     <div class="container">
         <div class="row">
@@ -67,9 +73,10 @@
                     </div>
 
                     <div class="wrap__article-detail-image mt-4">
-                        <figure>
-                            <img src="{{ asset($news->image) }}" alt="" class="img-fluid">
-                        </figure>
+                             <figure>
+                                <img src="{{ asset($news->image) }}" alt="{{ $title }}" class="img-fluid">
+                                <figcaption>{{ $title }}</figcaption>
+                            </figure>
                     </div>
                     <div class="wrap__article-detail-content">
                         <div class="total-views">
@@ -155,7 +162,8 @@
                         </figure>
                         <div class="wrap__profile-author-detail">
                             <div class="author-wrapper">
-                                <div class="wrap__profile-author-detail-name">{{ $news->auther->getRoleNames()->first() }}</div>
+                                <!--<div class="wrap__profile-author-detail-name">{{ $news->auther->getRoleNames()->first() }}</div>-->
+                                <div class="wrap__profile-author-detail-name">We Are Team</div>
                             <h4>{{ $news->auther->name }}</h4>
 
                             </div>

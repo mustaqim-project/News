@@ -69,8 +69,6 @@ final class DefaultPrinter implements Printer
      */
     private function __construct(string $out)
     {
-        $this->isPhpStream = str_starts_with($out, 'php://');
-
         if (str_starts_with($out, 'socket://')) {
             $tmp = explode(':', str_replace('socket://', '', $out));
 
@@ -78,8 +76,8 @@ final class DefaultPrinter implements Printer
                 throw new InvalidSocketException(
                     sprintf(
                         '"%s" does not match "socket://hostname:port" format',
-                        $out,
-                    ),
+                        $out
+                    )
                 );
             }
 
@@ -88,6 +86,8 @@ final class DefaultPrinter implements Printer
 
             return;
         }
+
+        $this->isPhpStream = str_starts_with($out, 'php://');
 
         if (!$this->isPhpStream && !Filesystem::createDirectory(dirname($out))) {
             throw new DirectoryDoesNotExistException(dirname($out));

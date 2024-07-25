@@ -6,7 +6,7 @@ namespace Pest\Repositories;
 
 use Closure;
 use Mockery;
-use Pest\PendingCalls\AfterEachCall;
+use Pest\Exceptions\AfterEachAlreadyExist;
 use Pest\Support\ChainableClosure;
 use Pest\Support\NullClosure;
 
@@ -23,18 +23,13 @@ final class AfterEachRepository
     /**
      * Sets a after each closure.
      */
-    public function set(string $filename, AfterEachCall $afterEachCall, Closure $afterEachTestCase): void
+    public function set(string $filename, Closure $closure): void
     {
         if (array_key_exists($filename, $this->state)) {
-            $fromAfterEachTestCase = $this->state[$filename];
-
-            $afterEachTestCase = ChainableClosure::bound($fromAfterEachTestCase, $afterEachTestCase)
-                ->bindTo($afterEachCall, $afterEachCall::class);
+            throw new AfterEachAlreadyExist($filename);
         }
 
-        assert($afterEachTestCase instanceof Closure);
-
-        $this->state[$filename] = $afterEachTestCase;
+        $this->state[$filename] = $closure;
     }
 
     /**
@@ -44,7 +39,7 @@ final class AfterEachRepository
     {
         $afterEach = $this->state[$filename] ?? NullClosure::create();
 
-        return ChainableClosure::bound(function (): void {
+        return ChainableClosure::from(function (): void {
             if (class_exists(Mockery::class)) {
                 if ($container = Mockery::getContainer()) {
                     /* @phpstan-ignore-next-line */

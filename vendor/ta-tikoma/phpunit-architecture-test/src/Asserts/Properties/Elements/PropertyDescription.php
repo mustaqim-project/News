@@ -45,51 +45,26 @@ final class PropertyDescription
     }
 
     /**
-     * @return string|string[]
-     */
-    private static function getTypeNameByReflectionType(ReflectionNamedType|ReflectionUnionType|ReflectionIntersectionType $type): string|array
-    {
-        switch (true) {
-            case $type instanceof ReflectionNamedType:
-                return $type->getName();
-            case $type instanceof ReflectionIntersectionType:
-            case $type instanceof ReflectionUnionType:
-                /**
-                 * @var ReflectionNamedType[]|ReflectionIntersectionType[] $types
-                 */
-                $types = $type->getTypes();
-                $names = array_map(
-                    static fn ($type) => self::getTypeNameByReflectionType($type),
-                    $types
-                );
-
-                $result = [];
-                foreach ($names as $name) {
-                    if (is_array($name)) {
-                        $result = array_merge($result, $name);
-                    } else {
-                        $result[] = $name;
-                    }
-                }
-
-                return $result;
-        }
-
-        throw new Exception('Unexpected type:"' . get_class($type) . '"');
-    }
-
-    /**
      * @return string|string[]|null
      */
     private static function getPropertyType(
         ObjectPropertiesDescription $objectPropertiesDescription,
         ReflectionProperty $reflectionProperty
     ): string|array|null {
-        /** @var ReflectionNamedType|ReflectionUnionType|ReflectionIntersectionType|null $type */
         $type = $reflectionProperty->getType();
         if ($type !== null) {
-            return self::getTypeNameByReflectionType($type);
+            if ($type instanceof ReflectionUnionType) {
+                return array_map(static fn ($type) => $type->getName(), $type->getTypes());
+            }
+
+            if ($type instanceof ReflectionIntersectionType) {
+                return null; // @todo
+            }
+
+            /** @var ReflectionNamedType $type */
+            return $type->getName();
         }
+
 
         $docComment = $reflectionProperty->getDocComment();
         if (empty($docComment)) {
@@ -98,7 +73,7 @@ final class PropertyDescription
 
         try {
             $docBlock = ServiceContainer::$docBlockFactory->create($docComment);
-        } catch (Exception) {
+        } catch (Exception $e) {
             if (ServiceContainer::$showException) {
                 echo "Can't parse: '$docComment'";
             }

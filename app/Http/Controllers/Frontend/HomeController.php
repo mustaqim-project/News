@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Frontend;
 use App\Http\Controllers\Controller;
 use App\Mail\ContactMail;
 use App\Models\About;
+use App\Models\kebijakan;
 use App\Models\Ad;
 use App\Models\Category;
 use App\Models\Comment;
@@ -275,6 +276,13 @@ class HomeController extends Controller
         $about = About::where('language', getLangauge())->first();
         return view('frontend.about', compact('about'));
     }
+    
+        public function kebijakan()
+    {
+        $kebijakan = kebijakan::where('language', getLangauge())->first();
+        return view('frontend.kebijakan', compact('kebijakan'));
+    }
+
 
     public function contact()
     {

@@ -5,20 +5,15 @@ declare(strict_types=1);
 namespace Pest\Laravel\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Contracts\Console\PromptsForMissingInput;
 use Illuminate\Support\Facades\File;
 use Pest\Support\Str;
-use Pest\TestSuite;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
-
-use function Laravel\Prompts\select;
 use function Pest\testDirectory;
+use Pest\TestSuite;
 
 /**
  * @internal
  */
-final class PestTestCommand extends Command implements PromptsForMissingInput
+final class PestTestCommand extends Command
 {
     /**
      * The console command name.
@@ -86,30 +81,5 @@ final class PestTestCommand extends Command implements PromptsForMissingInput
         $this->components->info($message);
 
         return 0;
-    }
-
-    protected function promptForMissingArgumentsUsing()
-    {
-        return [
-            'name' => 'What should the test be named?',
-        ];
-    }
-
-    /**
-     * Interact further with the user if they were prompted for missing arguments.
-     */
-    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output)
-    {
-        $type = select('Which type of test would you like?', [
-            'feature' => 'Feature',
-            'unit' => 'Unit',
-            'dusk' => 'Dusk',
-        ]);
-
-        match ($type) {
-            'feature' => null,
-            'unit' => $input->setOption('unit', true),
-            'dusk' => $input->setOption('dusk', true),
-        };
     }
 }

@@ -9,7 +9,6 @@ use function assert;
 use function count;
 use function in_array;
 use function strlen;
-use function substr;
 
 class TokenIterator
 {
@@ -23,12 +22,6 @@ class TokenIterator
 	/** @var int[] */
 	private $savePoints = [];
 
-	/** @var list<int> */
-	private $skippedTokenTypes = [Lexer::TOKEN_HORIZONTAL_WS];
-
-	/** @var string|null */
-	private $newline = null;
-
 	/**
 	 * @param list<array{string, int, int}> $tokens
 	 */
@@ -37,7 +30,11 @@ class TokenIterator
 		$this->tokens = $tokens;
 		$this->index = $index;
 
-		$this->skipIrrelevantTokens();
+		if ($this->tokens[$this->index][Lexer::TYPE_OFFSET] !== Lexer::TOKEN_HORIZONTAL_WS) {
+			return;
+		}
+
+		$this->index++;
 	}
 
 
@@ -106,21 +103,6 @@ class TokenIterator
 	}
 
 
-	public function endIndexOfLastRelevantToken(): int
-	{
-		$endIndex = $this->currentTokenIndex();
-		$endIndex--;
-		while (in_array($this->tokens[$endIndex][Lexer::TYPE_OFFSET], $this->skippedTokenTypes, true)) {
-			if (!isset($this->tokens[$endIndex - 1])) {
-				break;
-			}
-			$endIndex--;
-		}
-
-		return $endIndex;
-	}
-
-
 	public function isCurrentTokenValue(string $tokenValue): bool
 	{
 		return $this->tokens[$this->index][Lexer::VALUE_OFFSET] === $tokenValue;
@@ -148,14 +130,13 @@ class TokenIterator
 			$this->throwError($tokenType);
 		}
 
-		if ($tokenType === Lexer::TOKEN_PHPDOC_EOL) {
-			if ($this->newline === null) {
-				$this->detectNewline();
-			}
+		$this->index++;
+
+		if (($this->tokens[$this->index][Lexer::TYPE_OFFSET] ?? -1) !== Lexer::TOKEN_HORIZONTAL_WS) {
+			return;
 		}
 
 		$this->index++;
-		$this->skipIrrelevantTokens();
 	}
 
 
@@ -169,7 +150,12 @@ class TokenIterator
 		}
 
 		$this->index++;
-		$this->skipIrrelevantTokens();
+
+		if (($this->tokens[$this->index][Lexer::TYPE_OFFSET] ?? -1) !== Lexer::TOKEN_HORIZONTAL_WS) {
+			return;
+		}
+
+		$this->index++;
 	}
 
 
@@ -181,7 +167,10 @@ class TokenIterator
 		}
 
 		$this->index++;
-		$this->skipIrrelevantTokens();
+
+		if ($this->tokens[$this->index][Lexer::TYPE_OFFSET] === Lexer::TOKEN_HORIZONTAL_WS) {
+			$this->index++;
+		}
 
 		return true;
 	}
@@ -194,27 +183,13 @@ class TokenIterator
 			return false;
 		}
 
-		if ($tokenType === Lexer::TOKEN_PHPDOC_EOL) {
-			if ($this->newline === null) {
-				$this->detectNewline();
-			}
-		}
-
 		$this->index++;
-		$this->skipIrrelevantTokens();
+
+		if ($this->tokens[$this->index][Lexer::TYPE_OFFSET] === Lexer::TOKEN_HORIZONTAL_WS) {
+			$this->index++;
+		}
 
 		return true;
-	}
-
-
-	private function detectNewline(): void
-	{
-		$value = $this->currentTokenValue();
-		if (substr($value, 0, 2) === "\r\n") {
-			$this->newline = "\r\n";
-		} elseif (substr($value, 0, 1) === "\n") {
-			$this->newline = "\n";
-		}
 	}
 
 
@@ -242,34 +217,12 @@ class TokenIterator
 	public function next(): void
 	{
 		$this->index++;
-		$this->skipIrrelevantTokens();
-	}
 
-
-	private function skipIrrelevantTokens(): void
-	{
-		if (!isset($this->tokens[$this->index])) {
+		if ($this->tokens[$this->index][Lexer::TYPE_OFFSET] !== Lexer::TOKEN_HORIZONTAL_WS) {
 			return;
 		}
 
-		while (in_array($this->tokens[$this->index][Lexer::TYPE_OFFSET], $this->skippedTokenTypes, true)) {
-			if (!isset($this->tokens[$this->index + 1])) {
-				break;
-			}
-			$this->index++;
-		}
-	}
-
-
-	public function addEndOfLineToSkippedTokens(): void
-	{
-		$this->skippedTokenTypes = [Lexer::TOKEN_HORIZONTAL_WS, Lexer::TOKEN_PHPDOC_EOL];
-	}
-
-
-	public function removeEndOfLineFromSkippedTokens(): void
-	{
-		$this->skippedTokenTypes = [Lexer::TOKEN_HORIZONTAL_WS];
+		$this->index++;
 	}
 
 	/** @phpstan-impure */
@@ -364,11 +317,6 @@ class TokenIterator
 		}
 
 		return false;
-	}
-
-	public function getDetectedNewline(): ?string
-	{
-		return $this->newline;
 	}
 
 	/**

@@ -40,14 +40,4 @@ final class PestDuskCommand extends DuskCommand
 
         return [PHP_BINARY, 'vendor/pestphp/pest/bin/pest'];
     }
-
-    /**
-     * Determine if Collision's printer should be used.
-     *
-     * @return bool
-     */
-    protected function shouldUseCollisionPrinter()
-    {
-        return false;
-    }
 }

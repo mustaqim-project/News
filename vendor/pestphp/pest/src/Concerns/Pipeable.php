@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Pest\Concerns;
 
 use Closure;
+use Pest\Expectation;
 
 /**
  * @internal
@@ -36,7 +37,7 @@ trait Pipeable
     /**
      * Register an interceptor that should replace an existing expectation.
      *
-     * @param  string|Closure(mixed $value, mixed ...$arguments):bool  $filter
+     * @param string|Closure(mixed $value, mixed ...$arguments):bool $filter
      */
     public function intercept(string $name, string|Closure $filter, Closure $handler): void
     {
@@ -60,7 +61,7 @@ trait Pipeable
     }
 
     /**
-     * Get the list of pipes by the given name.
+     * Get th list of pipes by the given name.
      *
      * @return array<int, Closure>
      */

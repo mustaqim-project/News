@@ -5,13 +5,10 @@ declare(strict_types=1);
 namespace Pest\Arch;
 
 use Closure;
-use Pest\Arch\Contracts\ArchExpectation;
 use Pest\Expectation;
 
 /**
  * @internal
- *
- * @mixin Expectation<string>
  */
 final class GroupArchExpectation implements Contracts\ArchExpectation
 {
@@ -99,26 +96,6 @@ final class GroupArchExpectation implements Contracts\ArchExpectation
         $this->ensureLazyExpectationIsVerified();
 
         return $this->original->$name; // @phpstan-ignore-line
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function mergeExcludeCallbacks(array $excludeCallbacks): void
-    {
-        foreach ($this->expectations as $expectation) {
-            $expectation->mergeExcludeCallbacks($excludeCallbacks);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function excludeCallbacks(): array
-    {
-        return array_merge(...array_map(
-            fn (ArchExpectation $expectation): array => $expectation->excludeCallbacks(), $this->expectations,
-        ));
     }
 
     /**

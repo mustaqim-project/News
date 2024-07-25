@@ -60,13 +60,13 @@ final class Init implements HandlesArguments
 
         $this->init();
 
-        exit(0);
+        return array_values($arguments);
     }
 
     /**
      * Initializes the tests directory.
      */
-    public function init(): void
+    private function init(): void
     {
         $testsBaseDir = "{$this->testSuite->rootPath}/tests";
 
@@ -112,6 +112,8 @@ final class Init implements HandlesArguments
         View::render('components.new-line');
 
         (new Thanks($this->input, $this->output))();
+
+        exit(0);
     }
 
     /**

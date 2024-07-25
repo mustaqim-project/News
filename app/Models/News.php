@@ -9,6 +9,28 @@ class News extends Model
 {
     use HasFactory;
 
+
+    protected $table = 'news';
+
+    protected $fillable = [
+        'language',
+        'category_id',
+        'auther_id',
+        'image',
+        'title',
+        'slug',
+        'content',
+        'meta_title',
+        'meta_description',
+        'is_breaking_news',
+        'show_at_slider',
+        'show_at_popular',
+        'status',
+        'is_approved',
+        'views',
+        'meta_keyword',
+    ];
+
     /** scope for active items */
     public function scopeActiveEntries($query)
     {

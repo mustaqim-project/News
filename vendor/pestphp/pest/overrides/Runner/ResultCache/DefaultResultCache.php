@@ -45,23 +45,22 @@ declare(strict_types=1);
 
 namespace PHPUnit\Runner\ResultCache;
 
-use const DIRECTORY_SEPARATOR;
-
-use PHPUnit\Framework\TestStatus\TestStatus;
-use PHPUnit\Runner\DirectoryCannotBeCreatedException;
-use PHPUnit\Runner\Exception;
-use PHPUnit\Util\Filesystem;
-
 use function array_keys;
 use function assert;
+use const DIRECTORY_SEPARATOR;
 use function dirname;
 use function file_get_contents;
 use function file_put_contents;
 use function is_array;
 use function is_dir;
+use function is_file;
 use function json_decode;
 use function json_encode;
 use function Pest\version;
+use PHPUnit\Framework\TestStatus\TestStatus;
+use PHPUnit\Runner\DirectoryCannotBeCreatedException;
+use PHPUnit\Runner\Exception;
+use PHPUnit\Util\Filesystem;
 
 /**
  * @internal This class is not covered by the backward compatibility promise for PHPUnit
@@ -128,15 +127,13 @@ final class DefaultResultCache implements ResultCache
 
     public function load(): void
     {
-        $contents = @file_get_contents($this->cacheFilename);
-
-        if ($contents === false) {
+        if (! is_file($this->cacheFilename)) {
             return;
         }
 
         $data = json_decode(
-            $contents,
-            true,
+            file_get_contents($this->cacheFilename),
+            true
         );
 
         if ($data === null) {

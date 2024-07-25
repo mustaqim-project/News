@@ -39,12 +39,12 @@ use PHPUnit\Runner\Filter\Factory;
 use PHPUnit\Runner\PhptTestCase;
 use PHPUnit\Runner\TestSuiteLoader;
 use PHPUnit\TestRunner\TestResult\Facade as TestResultFacade;
+use PHPUnit\TextUI\Configuration\Registry;
 use PHPUnit\Util\Filter;
 use PHPUnit\Util\Reflection;
 use PHPUnit\Util\Test as TestUtil;
 use ReflectionClass;
 use ReflectionMethod;
-use SebastianBergmann\CodeCoverage\InvalidArgumentException;
 use SebastianBergmann\CodeCoverage\UnintentionallyCoveredCodeException;
 use Throwable;
 
@@ -55,37 +55,36 @@ use Throwable;
  */
 class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
 {
-    /**
-     * @psalm-var non-empty-string
-     */
-    private string $name;
+    protected string $name = '';
 
     /**
      * @psalm-var array<string,list<Test>>
      */
-    private array $groups = [];
-
-    /**
-     * @psalm-var ?list<ExecutionOrderDependency>
-     */
-    private ?array $requiredTests = null;
+    protected array $groups         = [];
+    protected ?array $requiredTests = null;
 
     /**
      * @psalm-var list<Test>
      */
-    private array $tests = [];
-
-    /**
-     * @psalm-var ?list<ExecutionOrderDependency>
-     */
+    private array $tests             = [];
     private ?array $providedTests    = null;
     private ?Factory $iteratorFilter = null;
+    private readonly bool $stopOnDefect;
+    private readonly bool $stopOnDeprecation;
+    private readonly bool $stopOnError;
+    private readonly bool $stopOnFailure;
+    private readonly bool $stopOnIncomplete;
+    private readonly bool $stopOnNotice;
+    private readonly bool $stopOnRisky;
+    private readonly bool $stopOnSkipped;
+    private readonly bool $stopOnWarning;
 
-    /**
-     * @psalm-param non-empty-string $name
-     */
-    public static function empty(string $name): static
+    public static function empty(string $name = null): static
     {
+        if ($name === null) {
+            $name = '';
+        }
+
         return new static($name);
     }
 
@@ -111,8 +110,8 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
             Event\Facade::emitter()->testRunnerTriggeredWarning(
                 sprintf(
                     'Class "%s" has no public constructor.',
-                    $class->getName(),
-                ),
+                    $class->getName()
+                )
             );
 
             return $testSuite;
@@ -138,20 +137,29 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
             Event\Facade::emitter()->testRunnerTriggeredWarning(
                 sprintf(
                     'No tests found in class "%s".',
-                    $class->getName(),
-                ),
+                    $class->getName()
+                )
             );
         }
 
         return $testSuite;
     }
 
-    /**
-     * @psalm-param non-empty-string $name
-     */
     final private function __construct(string $name)
     {
         $this->name = $name;
+
+        $configuration = Registry::get();
+
+        $this->stopOnDeprecation = $configuration->stopOnDeprecation();
+        $this->stopOnDefect      = $configuration->stopOnDefect();
+        $this->stopOnError       = $configuration->stopOnError();
+        $this->stopOnFailure     = $configuration->stopOnFailure();
+        $this->stopOnIncomplete  = $configuration->stopOnIncomplete();
+        $this->stopOnNotice      = $configuration->stopOnNotice();
+        $this->stopOnRisky       = $configuration->stopOnRisky();
+        $this->stopOnSkipped     = $configuration->stopOnSkipped();
+        $this->stopOnWarning     = $configuration->stopOnWarning();
     }
 
     /**
@@ -159,7 +167,7 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
      */
     public function toString(): string
     {
-        return $this->name();
+        return $this->getName();
     }
 
     /**
@@ -174,7 +182,7 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
             $this->clearCaches();
 
             if ($test instanceof self && empty($groups)) {
-                $groups = $test->groups();
+                $groups = $test->getGroups();
             }
 
             if ($this->containsOnlyVirtualGroups($groups)) {
@@ -206,8 +214,8 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
             throw new Exception(
                 sprintf(
                     'Class %s is abstract',
-                    $testClass->getName(),
-                ),
+                    $testClass->getName()
+                )
             );
         }
 
@@ -216,8 +224,8 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
                 sprintf(
                     'Class %s is not a subclass of %s',
                     $testClass->getName(),
-                    TestCase::class,
-                ),
+                    TestCase::class
+                )
             );
         }
 
@@ -236,12 +244,12 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
      */
     public function addTestFile(string $filename): void
     {
-        if (str_ends_with($filename, '.phpt') && is_file($filename)) {
+        if (is_file($filename) && str_ends_with($filename, '.phpt')) {
             try {
                 $this->addTest(new PhptTestCase($filename));
             } catch (RunnerException $e) {
                 Event\Facade::emitter()->testRunnerTriggeredWarning(
-                    $e->getMessage(),
+                    $e->getMessage()
                 );
             }
 
@@ -250,11 +258,11 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
 
         try {
             $this->addTestSuite(
-                (new TestSuiteLoader)->load($filename),
+                (new TestSuiteLoader)->load($filename)
             );
         } catch (RunnerException $e) {
             Event\Facade::emitter()->testRunnerTriggeredWarning(
-                $e->getMessage(),
+                $e->getMessage()
             );
         }
     }
@@ -291,9 +299,9 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
     }
 
     /**
-     * @psalm-return non-empty-string
+     * Returns the name of the suite.
      */
-    public function name(): string
+    public function getName(): string
     {
         return $this->name;
     }
@@ -303,24 +311,24 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
      *
      * @psalm-return list<string>
      */
-    public function groups(): array
+    public function getGroups(): array
     {
         return array_map(
             'strval',
-            array_keys($this->groups),
+            array_keys($this->groups)
         );
     }
 
-    public function groupDetails(): array
+    public function getGroupDetails(): array
     {
         return $this->groups;
     }
 
     /**
+     * @throws \SebastianBergmann\CodeCoverage\InvalidArgumentException
      * @throws CodeCoverageException
      * @throws Event\RuntimeException
      * @throws Exception
-     * @throws InvalidArgumentException
      * @throws NoPreviousThrowableException
      * @throws UnintentionallyCoveredCodeException
      */
@@ -448,7 +456,7 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
 
                 $this->requiredTests = ExecutionOrderDependency::mergeUnique(
                     ExecutionOrderDependency::filterInvalid($this->requiredTests),
-                    $test->requires(),
+                    $test->requires()
                 );
             }
 
@@ -460,7 +468,7 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
 
     public function sortId(): string
     {
-        return $this->name() . '::class';
+        return $this->getName() . '::class';
     }
 
     /**
@@ -472,7 +480,7 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
     }
 
     /**
-     * @throws Event\TestData\MoreThanOneDataSetFromDataProviderException
+     * @throws \PHPUnit\Event\TestData\MoreThanOneDataSetFromDataProviderException
      * @throws Exception
      */
     protected function addTestMethod(ReflectionClass $class, ReflectionMethod $method): void
@@ -493,17 +501,17 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
                     $method->getStartLine(),
                     Event\Code\TestDoxBuilder::fromClassNameAndMethodName(
                         $className,
-                        $methodName,
+                        $methodName
                     ),
                     MetadataCollection::fromArray([]),
-                    Event\TestData\TestDataCollection::fromArray([]),
+                    Event\TestData\TestDataCollection::fromArray([])
                 ),
                 sprintf(
                     "The data provider specified for %s::%s is invalid\n%s",
                     $className,
                     $methodName,
-                    $this->throwableToString($e),
-                ),
+                    $this->throwableToString($e)
+                )
             );
 
             return;
@@ -511,13 +519,13 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
 
         if ($test instanceof TestCase || $test instanceof DataProviderTestSuite) {
             $test->setDependencies(
-                Dependencies::dependencies($class->getName(), $methodName),
+                Dependencies::dependencies($class->getName(), $methodName)
             );
         }
 
         $this->addTest(
             $test,
-            (new Groups)->groups($class->getName(), $methodName),
+            (new Groups)->groups($class->getName(), $methodName)
         );
     }
 
@@ -561,7 +569,7 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
             return sprintf(
                 "%s\n%s",
                 $message,
-                Filter::getFilteredStacktrace($t),
+                Filter::getFilteredStacktrace($t)
             );
         }
 
@@ -569,7 +577,7 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
             "%s: %s\n%s",
             $t::class,
             $message,
-            Filter::getFilteredStacktrace($t),
+            Filter::getFilteredStacktrace($t)
         );
     }
 
@@ -599,22 +607,22 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
 
                 $methodCalledBeforeFirstTest = new Event\Code\ClassMethod(
                     $this->name,
-                    $beforeClassMethod,
+                    $beforeClassMethod
                 );
 
                 $emitter->testBeforeFirstTestMethodCalled(
                     $this->name,
-                    $methodCalledBeforeFirstTest,
+                    $methodCalledBeforeFirstTest
                 );
 
                 $methodsCalledBeforeFirstTest[] = $methodCalledBeforeFirstTest;
 
                 call_user_func([$this->name, $beforeClassMethod]);
             }
-        } catch (SkippedTest|SkippedTestSuiteError $e) {
+        } catch (SkippedTestSuiteError|SkippedTest $e) {
             $emitter->testSuiteSkipped(
                 $testSuiteValueObjectForEvents,
-                $e->getMessage(),
+                $e->getMessage()
             );
 
             return false;
@@ -624,13 +632,13 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
             $emitter->testBeforeFirstTestMethodErrored(
                 $this->name,
                 $methodCalledBeforeFirstTest,
-                Event\Code\ThrowableBuilder::from($t),
+                Event\Code\ThrowableBuilder::from($t)
             );
 
             if (!empty($methodsCalledBeforeFirstTest)) {
                 $emitter->testBeforeFirstTestMethodFinished(
                     $this->name,
-                    ...$methodsCalledBeforeFirstTest,
+                    ...$methodsCalledBeforeFirstTest
                 );
             }
 
@@ -640,7 +648,7 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
         if (!empty($methodsCalledBeforeFirstTest)) {
             $emitter->testBeforeFirstTestMethodFinished(
                 $this->name,
-                ...$methodsCalledBeforeFirstTest,
+                ...$methodsCalledBeforeFirstTest
             );
         }
 
@@ -667,12 +675,12 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
 
                 $methodCalledAfterLastTest = new Event\Code\ClassMethod(
                     $this->name,
-                    $afterClassMethod,
+                    $afterClassMethod
                 );
 
                 $emitter->testAfterLastTestMethodCalled(
                     $this->name,
-                    $methodCalledAfterLastTest,
+                    $methodCalledAfterLastTest
                 );
 
                 $methodsCalledAfterLastTest[] = $methodCalledAfterLastTest;
@@ -684,7 +692,7 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
         if (!empty($methodsCalledAfterLastTest)) {
             $emitter->testAfterLastTestMethodFinished(
                 $this->name,
-                ...$methodsCalledAfterLastTest,
+                ...$methodsCalledAfterLastTest
             );
         }
     }

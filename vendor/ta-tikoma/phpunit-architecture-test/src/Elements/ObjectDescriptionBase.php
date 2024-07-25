@@ -5,22 +5,13 @@ declare(strict_types=1);
 namespace PHPUnit\Architecture\Elements;
 
 use Exception;
-use Error;
 use PhpParser\Node;
 use PHPUnit\Architecture\Enums\ObjectType;
 use PHPUnit\Architecture\Services\ServiceContainer;
 use ReflectionClass;
-use ReflectionException;
 
 abstract class ObjectDescriptionBase
 {
-    /**
-     * The list of namespaces to ignore.
-     */
-    private static iterable $ignore = [
-        'Symfony\Component\Console\Tester',
-    ];
-
     public ObjectType $type;
 
     public string $path;
@@ -48,7 +39,6 @@ abstract class ObjectDescriptionBase
         try {
             $ast = ServiceContainer::$parser->parse($content);
         } catch (Exception $e) {
-
             if (ServiceContainer::$showException) {
                 echo "Path: $path Exception: {$e->getMessage()}";
             }
@@ -100,18 +90,7 @@ abstract class ObjectDescriptionBase
         $description->path            = $path;
         $description->name            = $className;
         $description->stmts           = $stmts;
-
-        foreach (self::$ignore as $ignore) {
-            if (str_starts_with($className, $ignore)) {
-                return null;
-            }
-        }
-
-        try {
-            $description->reflectionClass = new ReflectionClass($description->name);
-        } catch (Error|ReflectionException) { // @phpstan-ignore-line when class by className not loaded
-            return null;
-        }
+        $description->reflectionClass = new ReflectionClass($description->name);
 
         return $description;
     }

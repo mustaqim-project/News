@@ -83,7 +83,7 @@ You have two commands available that provides insight about what the finders
 can find:
 
 ```
-$ make diagnose                                     # From this repository
+$ make diagnosis                                    # From this repository
 $ ./vendor/fidry/cpu-core-counter/bin/diagnose.php  # From the library
 ```
 
