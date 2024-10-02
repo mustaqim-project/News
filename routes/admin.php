@@ -29,10 +29,10 @@ use App\Models\Setting;
 use Illuminate\Support\Facades\Route;
 
 
-Route::group(['prefix' => 'tes', 'as' => 'admin.'], function(){
+Route::group(['prefix' => 'admin', 'as' => 'admin.'], function(){
 
-    Route::get('mantapjiwa', [AdminAuthenticationController::class, 'login'])->name('login');
-    Route::post('mantap', [AdminAuthenticationController::class, 'handleLogin'])->name('handle-login');
+    Route::get('login', [AdminAuthenticationController::class, 'login'])->name('login');
+    Route::post('login', [AdminAuthenticationController::class, 'handleLogin'])->name('handle-login');
     Route::post('logout', [AdminAuthenticationController::class, 'logout'])->name('logout');
 
     /** Reset passeord */
@@ -45,7 +45,7 @@ Route::group(['prefix' => 'tes', 'as' => 'admin.'], function(){
 
 });
 
-Route::group(['prefix' => 'mantap-mantap', 'as' => 'admin.', 'middleware' => ['admin']], function(){
+Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['admin']], function(){
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     /**Profile Routes */
     Route::put('profile-password-update/{id}', [ ProfileController::class, 'passwordUpdate'])->name('profile-password.update');
@@ -104,7 +104,7 @@ Route::group(['prefix' => 'mantap-mantap', 'as' => 'admin.', 'middleware' => ['a
     /** kebijakan page Route */
     Route::get('kebijakan', [kebijakanController::class, 'index'])->name('kebijakan.index');
     Route::put('kebijakan', [kebijakanController::class, 'update'])->name('kebijakan.update');
-    
+
     /** Contact page Route */
     Route::get('contact', [ContactController::class, 'index'])->name('contact.index');
     Route::put('contact', [ContactController::class, 'update'])->name('contact.update');
